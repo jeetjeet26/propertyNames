@@ -9,24 +9,33 @@ def test_validator():
     # Get API key from environment variable
     api_key = os.getenv('GOOGLE_MAPS_API_KEY')
     
+    if not api_key:
+        print("Error: GOOGLE_MAPS_API_KEY not found in .env file")
+        return
+    
     # Initialize validator
     validator = PropertyNameValidator(api_key)
     
-    # Test cases
+    # Test cases with real addresses
     test_cases = [
         {
-            'name': "Sunset Gardens",
-            'address': "123 Main St, Austin, TX",
+            'name': "The Domain",
+            'address': "12 Garden Gate Lane, Irvine, CA 92620",
             'radius': 50
         },
         {
             'name': "Colonial Heights",
-            'address': "456 Oak Ave, Dallas, TX",
+            'address': "6001 W Parmer Lane, Austin, TX 78727",
             'radius': 50
         },
         {
             'name': "Pleasant Valley",
-            'address': "789 Pine St, Houston, TX",
+            'address': "1100 South Pleasant Valley Road, Austin, TX 78741",
+            'radius': 50
+        },
+        {
+            'name': "The Hood",  # Should trigger warning
+            'address': "2525 W Anderson Ln, Austin, TX 78757",
             'radius': 50
         }
     ]
@@ -34,6 +43,7 @@ def test_validator():
     # Run tests
     for case in test_cases:
         print(f"\nTesting property name: {case['name']}")
+        print(f"Address: {case['address']}")
         print("-" * 50)
         
         # First, validate the name
@@ -64,7 +74,17 @@ def test_validator():
             if 'error' in search_results:
                 print(f"Error: {search_results['error']}")
             else:
-                print(f"Found {len(search_results.get('potential_conflicts', []))} potential conflicts")
+                conflicts = search_results.get('potential_conflicts', [])
+                print(f"Found {len(conflicts)} potential conflicts")
+                
+                if conflicts:
+                    print("\nNearby properties:")
+                    for conflict in conflicts:
+                        print(f"- {conflict['name']}")
+                        print(f"  Distance: {conflict['distance']} miles")
+                        print(f"  Address: {conflict['address']}")
+        
+        print("\nSearch complete.")
 
 if __name__ == "__main__":
     test_validator()
